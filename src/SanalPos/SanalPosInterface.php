@@ -14,11 +14,10 @@ interface SanalPosInterface {
 
     public function check();
 
-    public function send();
-
     public function getMode();
     public function setMode($mode);
 
-    public function setTransactionMode($mode = 'sales');
-    public function getTransactionMode();
+    public function pay();
+    public function refund();
+    public function cancel();
 } 

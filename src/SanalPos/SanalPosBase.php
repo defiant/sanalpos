@@ -8,6 +8,8 @@
 namespace SanalPos;
 
 class SanalPosBase {
+    protected $mode;
+
     protected $card  = [];
     protected $order = [];
 
@@ -26,8 +28,30 @@ class SanalPosBase {
         $this->order['total']   = $total;
         $this->order['taksit']  = $taksit;
         $this->order['extra']   = $extra;
-        $this->order['total']   = $this->order['total'] * 100; // garanti 1.00 yerine 100 bekliyor
     }
+
+    public function getMode()
+    {
+        return $this->mode;
+    }
+
+    public function setMode($mode)
+    {
+        $this->mode = $mode;
+        return $this->mode;
+    }
+
+    public function getTransactionMode()
+    {
+        return $this->getTransactionMode;
+    }
+
+    public function setTransactionMode($mode = 'sales')
+    {
+        $this->transactionMode = $mode;
+        return $this->transactionMode;
+    }
+
     public function check()
     {
 

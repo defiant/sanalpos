@@ -12,7 +12,6 @@ use SanalPos\SanalPosInterface;
 
 class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
     protected $mode = 'PROD';
-    protected $transactionMode;
 
     protected  $xml = '';
 
@@ -33,14 +32,37 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
         $this->provisionUser = $provisionUser;
     }
 
+    public function setOrder($orderId, $customerEmail, $total, $taksit = '', $extra = [])
+    {
+        $this->order['orderId'] = $orderId;
+        $this->order['email']   = $customerEmail;
+        $this->order['total']   = $total;
+        $this->order['taksit']  = $taksit;
+        $this->order['extra']   = $extra;
+        $this->order['total']   = $this->order['total'] * 100; // garanti 1.00 yerine 100 bekliyor
+    }
 
+    public function pay()
+    {
+        $this->server = $this->mode == 'TEST' ? $server = $this->testServer : $this->server;
+        $this->setXml();
+        return $this->send();
+    }
+
+    public function cancel()
+    {
+        throw new \Exception('Not implemented');
+    }
+
+    public function refund()
+    {
+        throw new \Exception('Not implemented');
+    }
 
     public function send(){
-        $server = $this->mode == 'TEST' ? $server = $this->testServer : $this->server;
-        $this->setXml();
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $server);
+        curl_setopt($ch, CURLOPT_URL, $this->server);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, "data=" . $this->xml);
@@ -96,28 +118,6 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
 
     public function getXml(){
         return $this->xml;
-    }
-
-    public function getMode()
-    {
-        return $this->mode;
-    }
-
-    public function setMode($mode)
-    {
-        $this->mode = $mode;
-        return $this->mode;
-    }
-
-    public function getTransactionMode()
-    {
-        return $this->getTransactionMode;
-    }
-
-    public function setTransactionMode($mode = 'sales')
-    {
-        $this->transactionMode = $mode;
-        return $this->transactionMode;
     }
 
     protected function createHash(){
