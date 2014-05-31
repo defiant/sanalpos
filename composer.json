@@ -1,15 +1,17 @@
 {
     "name": "defiant/sanalpos",
-    "description": "sanalpos",
+    "description": "Garanti Bankası ve EST destekleyen bankalar (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank) için Sanal Pos sınıfları.",
+    "keywords": ["sanalpos", "online pos"],
     "authors": [
         {
             "name": "Sinan Taga",
-            "email": "sinantaga@gmail.com"
+            "email": "sinantaga@gmail.com",
+            "role": "Developer"
         }
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.3.0"
+        "php": ">=5.4.0"
     },
     "autoload": {
         "psr-0": {
