@@ -7,7 +7,20 @@ Garanti Bankası ve EST destekleyen bankalar (İş Bankası, Akbank, Finansbank,
 
 #Kurulum
 Composer ile
+Aşağıdaki şekilde bir composer.json dosyası yaratıp php composer.phar install komutu ile kurulum yapılabilir. Veya var olan composer.json dosyasına eklenebilir.
+```json
+{
+    "require": {
+        "defiant/sanalpos": "dev-master"
+    }
+}
+```
 
+Daha sonra proje içine aşağı şekilde autoload yapılabilir.
+```php
+<?php
+require 'vendor/autoload.php';
+```
 ## Garanti Bankası
 ```php
 // Sınıfı initialize et
