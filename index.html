@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Sanalpos by defiant</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/defiant/sanalpos">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/defiant/sanalpos/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/defiant/sanalpos/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Sanalpos</h1>
+          <p>Sanalpos uygulamaları</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/defiant">defiant</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="garanti-ve-est-sanal-pos" class="anchor" href="#garanti-ve-est-sanal-pos"><span class="octicon octicon-link"></span></a>Garanti ve Est Sanal Pos</h1>
+
+<hr><p>Garanti Bankası ve EST destekleyen bankalar (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank) için Sanal Pos sınıfları.</p>
+
+<p>Şu an sadece normal API için uygulamaları bulunuyor. 3D uygulamaları şu an bulunmamaktadır.</p>
+
+<h1>
+<a name="kurulum" class="anchor" href="#kurulum"><span class="octicon octicon-link"></span></a>Kurulum</h1>
+
+<p>Composer ile
+Aşağıdaki şekilde bir composer.json dosyası yaratıp php composer.phar install komutu ile kurulum yapılabilir. Veya var olan composer.json dosyasına eklenebilir.</p>
+
+<div class="highlight highlight-json"><pre><span class="p">{</span>
+    <span class="nt">"require"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">"defiant/sanalpos"</span><span class="p">:</span> <span class="s2">"dev-master"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Daha sonra proje içine aşağı şekilde autoload yapılabilir.</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="k">require</span> <span class="s1">'vendor/autoload.php'</span><span class="p">;</span>
+</pre></div>
+
+<h2>
+<a name="garanti-bankas%C4%B1" class="anchor" href="#garanti-bankas%C4%B1"><span class="octicon octicon-link"></span></a>Garanti Bankası</h2>
+
+<div class="highlight highlight-php"><pre><span class="c1">// Sınıfı initialize et</span>
+<span class="nv">$garantiPos</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Garanti\SanalPosGaranti</span><span class="p">(</span><span class="s1">'7000679'</span><span class="p">,</span> <span class="s1">'30691297'</span><span class="p">,</span> <span class="s1">'PROVAUT'</span><span class="p">,</span> <span class="s1">'123qweASD'</span><span class="p">,</span> <span class="s1">'PROVAUT'</span><span class="p">);</span>
+
+<span class="c1">// Kredi kartı Bilgilerini set et</span>
+<span class="nv">$garantiPos</span><span class="o">-&gt;</span><span class="na">setCard</span><span class="p">(</span><span class="s1">'4282209027132016'</span><span class="p">,</span> <span class="s1">'05'</span><span class="p">,</span> <span class="s1">'15'</span><span class="p">,</span> <span class="s1">'232'</span><span class="p">);</span>
+
+<span class="c1">// Sipariş verilerini set et</span>
+<span class="c1">// Mecburi alanlar 'orderId', 'customer email', 'order total'</span>
+<span class="nv">$garantiPos</span><span class="o">-&gt;</span><span class="na">setOrder</span><span class="p">(</span><span class="s1">'deneme23'</span><span class="p">,</span> <span class="s1">'test@test.com'</span><span class="p">,</span> <span class="s1">'1'</span><span class="p">);</span>
+
+<span class="c1">// Test sunucusunda deneme yapmak için mode'u 'TEST' olarak ayarlıyoruz.</span>
+<span class="nv">$garantiPos</span><span class="o">-&gt;</span><span class="na">setMode</span><span class="p">(</span><span class="s1">'TEST'</span><span class="p">);</span>
+
+<span class="c1">// pay() metodu ile ödemeyi gönderiyoruz.</span>
+<span class="nv">$result</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Garanti\SanalPosReponseGaranti</span><span class="p">(</span><span class="nv">$garantiPos</span><span class="o">-&gt;</span><span class="na">pay</span><span class="p">());</span>
+
+<span class="c1">// Eğer sorgu onaylandı ise success metodu true döndürüyor</span>
+<span class="c1">// aksi halde errors() metodunda hata mesajı var.</span>
+<span class="k">if</span><span class="p">(</span><span class="nv">$result</span><span class="o">-&gt;</span><span class="na">success</span><span class="p">()){</span>
+    <span class="c1">// transaction successful</span>
+<span class="p">}</span><span class="k">else</span><span class="p">{</span>
+    <span class="c1">//transaction failed</span>
+    <span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="o">-&gt;</span><span class="na">errors</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="est-%C4%B0%C5%9F-bankas%C4%B1-akbank-finansbank-halk-bankas%C4%B1-ve-anadolubank" class="anchor" href="#est-%C4%B0%C5%9F-bankas%C4%B1-akbank-finansbank-halk-bankas%C4%B1-ve-anadolubank"><span class="octicon octicon-link"></span></a>EST (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank)</h2>
+
+<p>EST içinde benzer bir şekilde ödeme gönderiliyor.</p>
+
+<p>Est için SanalPosEst sınıfını kullanıyoruz.
+Diğerinden farklı olarak ilk parametrede hangi banka olduğunu belirtiyoruz.
+Bunun dışında kullanımı benzer şekilde</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$est</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosEst</span><span class="p">(</span><span class="s1">'isbank'</span><span class="p">,</span> <span class="s1">'700100000'</span><span class="p">,</span> <span class="s1">'ISBANKAPI'</span><span class="p">,</span> <span class="s1">'ISBANK07'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setCard</span><span class="p">(</span><span class="s1">'4508034508034509'</span><span class="p">,</span> <span class="s1">'12'</span><span class="p">,</span> <span class="s1">'16'</span><span class="p">,</span> <span class="s1">'000'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setOrder</span><span class="p">(</span><span class="s1">'deneme123'</span><span class="p">,</span> <span class="s1">'test@test.com'</span><span class="p">,</span> <span class="s1">'1'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setMode</span><span class="p">(</span><span class="s1">'TEST'</span><span class="p">);</span>
+
+<span class="nv">$result</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosResponseEst</span><span class="p">(</span><span class="nv">$est</span><span class="o">-&gt;</span><span class="na">pay</span><span class="p">());</span>
+<span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
+</pre></div>
+
+<h2>
+<a name="todo" class="anchor" href="#todo"><span class="octicon octicon-link"></span></a>TODO</h2>
+
+<p>İlk planda;</p>
+
+<ul>
+<li>Base sınıf içinde çeşitli kontrollerin eklenmesi.</li>
+<li>İptal ve refund işlemlerin eklenmesi</li>
+</ul>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
