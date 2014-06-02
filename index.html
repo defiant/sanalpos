@@ -4,11 +4,11 @@
   <head>
     <meta charset='utf-8' />
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Sanalpos : Sanalpos uygulamaları" />
+    <meta name="description" content="Garanti Bankası ve EST destekleyen bankalar (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank) için Sanal Pos sınıfları. : Sanalpos uygulamaları" />
 
     <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>Sanalpos</title>
+    <title>Garanti Bankası ve EST destekleyen bankalar (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank) için Sanal Pos sınıfları.</title>
   </head>
 
   <body>
@@ -18,7 +18,7 @@
         <header class="inner">
           <a id="forkme_banner" href="https://github.com/defiant/sanalpos">View on GitHub</a>
 
-          <h1 id="project_title">Sanalpos</h1>
+          <h1 id="project_title">Garanti Bankası ve EST destekleyen bankalar (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank) için Sanal Pos sınıfları.</h1>
           <h2 id="project_tagline">Sanalpos uygulamaları</h2>
 
             <section id="downloads">
@@ -58,7 +58,98 @@ Aşağıdaki şekilde bir composer.json dosyası yaratıp php composer.phar inst
 </pre></div>
 
 <h2>
+<a name="est-%C4%B0%C5%9F-bankas%C4%B1-akbank-finansbank-halk-bankas%C4%B1-ve-anadolubank-sanal-poslar%C4%B1" class="anchor" href="#est-%C4%B0%C5%9F-bankas%C4%B1-akbank-finansbank-halk-bankas%C4%B1-ve-anadolubank-sanal-poslar%C4%B1"><span class="octicon octicon-link"></span></a>EST (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank sanal pos'ları)</h2>
+
+<p>Est için <code>SanalPosEst</code> sınıfını kullanıyoruz.
+Objeyi şu parametreler ile yaratıyoruz.</p>
+
+<ul>
+<li>Banka: Sanal pos'u kullanılmak istenen banka (isbank, akbank, finansbank, halkbank, anadolubank)</li>
+<li>clientId - Banka tarafından verilen clientId</li>
+<li>username - Banka tarafından verilen username</li>
+<li>password - Banka tarafında verilen password</li>
+</ul><p>Daha sonra setCard metodu ile card bilgilerini giriyoruz
+('kart numarası', 'son kullanma ay', 'son kullanma yıl', 'Cvv numarası')</p>
+
+<p>Üçüncü adım ise sipariş bilgilerinin girilmesi</p>
+
+<ul>
+<li>Sipariş Numarası (her sipariş için sistemde farklı bir 'id' olması gerekiyor. Aynı id ile mükerrer siparişler hata veriyor)</li>
+<li>Siparişi verenin email adresi (Bazı bankalarda bu alan mecburi değil, bu gibi durumlarda geçerli herhangi bir email adresi gönderilebilir.)</li>
+<li>Sipariş tutarı (100 TL, 100.25 (Yüz lira 25 kuruş gibi) EST sisteminde kuruşlar için virgül veya nokta kullanılabilir (100.25'de 100,25 aynı)</li>
+<li>Taksit tutarı: Kaç taksit yapılacaksa o değer. Ğeşin satışlar için boş bırakılabilir.</li>
+</ul><p>Test modu için setMode metodu 'TEST' parametresi ile kullanılır. Bu parametre kullanılmaz ise veya başka bir değer verilirse gerçek işlem yapılır.</p>
+
+<p>Son olarak <code>pay</code> metodu ile provizyon alınır. pay metoduna TRUE parametresi verilirse PreAuth (önotorisazyon) işlemi yapılır aksi takdirde Auth (satış) işlemi yapılır.</p>
+
+<h3>
+<a name="sat%C4%B1%C5%9F-auth-veya-preauth" class="anchor" href="#sat%C4%B1%C5%9F-auth-veya-preauth"><span class="octicon octicon-link"></span></a>Satış (Auth veya PreAuth)</h3>
+
+<p>Test verileri ile örnek kullanım:</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$est</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosEst</span><span class="p">(</span><span class="s1">'isbank'</span><span class="p">,</span> <span class="s1">'700100000'</span><span class="p">,</span> <span class="s1">'ISBANKAPI'</span><span class="p">,</span> <span class="s1">'ISBANK07'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setCard</span><span class="p">(</span><span class="s1">'4508034508034509'</span><span class="p">,</span> <span class="s1">'12'</span><span class="p">,</span> <span class="s1">'16'</span><span class="p">,</span> <span class="s1">'000'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setOrder</span><span class="p">(</span><span class="s1">'deneme123'</span><span class="p">,</span> <span class="s1">'test@test.com'</span><span class="p">,</span> <span class="s1">'1'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setMode</span><span class="p">(</span><span class="s1">'TEST'</span><span class="p">);</span>
+
+<span class="nv">$result</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosResponseEst</span><span class="p">(</span><span class="nv">$est</span><span class="o">-&gt;</span><span class="na">pay</span><span class="p">());</span>
+<span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="%C3%96n-otorizasyon-kapama-postauth" class="anchor" href="#%C3%96n-otorizasyon-kapama-postauth"><span class="octicon octicon-link"></span></a>Ön Otorizasyon Kapama (PostAuth)</h3>
+
+<p>PreAuth ile açılan siparişlerin kapatılmasında kullanılır. EST sisteminde setCard ve setOrder metodlarının kullanılmasına gerek yoktur.
+postAuth tek parametre olarak preAuth yapılmış siparişin numarasına ihtiyaç duyar.</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$est</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosEst</span><span class="p">(</span><span class="s1">'isbank'</span><span class="p">,</span> <span class="s1">'700100000'</span><span class="p">,</span> <span class="s1">'ISBANKAPI'</span><span class="p">,</span> <span class="s1">'ISBANK07'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">postAuth</span><span class="p">(</span><span class="s1">'deneme1234'</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="%C4%B0ptal-void-i%C5%9Flemi" class="anchor" href="#%C4%B0ptal-void-i%C5%9Flemi"><span class="octicon octicon-link"></span></a>İptal (Void) işlemi</h3>
+
+<p>İptal, bir işlemin gün sonundan önce iptal edilmesi demektir. Gün sonu işleminden sonra refund kullanılması gerekir.
+cancel metodu tek parametre olarak siparişin numarasına ihtiyaç duyar.</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$est</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosEst</span><span class="p">(</span><span class="s1">'isbank'</span><span class="p">,</span> <span class="s1">'700100000'</span><span class="p">,</span> <span class="s1">'ISBANKAPI'</span><span class="p">,</span> <span class="s1">'ISBANK07'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">cancel</span><span class="p">(</span><span class="s1">'deneme1234'</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="%C4%B0ade-refund" class="anchor" href="#%C4%B0ade-refund"><span class="octicon octicon-link"></span></a>İade (Refund)</h3>
+
+<p>Siparişin bir kısmının ve tamamının iptal edilmesi. İade işlemi ancak gün sonundan sonra yapılabilir.
+redund metodu parametre olarak preAuth yapılmış siparişin numarasına ve opsiyonel miktara ihtiyaç duyar. Eğer opsiyonel miktar belirtilmez ise, tüm miktar iade edilir.</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$est</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosEst</span><span class="p">(</span><span class="s1">'isbank'</span><span class="p">,</span> <span class="s1">'700100000'</span><span class="p">,</span> <span class="s1">'ISBANKAPI'</span><span class="p">,</span> <span class="s1">'ISBANK07'</span><span class="p">);</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">refund</span><span class="p">(</span><span class="s1">'deneme1234'</span><span class="p">,</span> <span class="s1">'25'</span><span class="p">)</span> <span class="c1">// Siparişin 25 lirasını iade et.</span>
+<span class="c1">// veya</span>
+<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">refund</span><span class="p">(</span><span class="s1">'deneme1234'</span><span class="p">)</span> <span class="c1">// Siparişin tümünü iade et.</span>
+</pre></div>
+
+<h3>
+<a name="cevaplar" class="anchor" href="#cevaplar"><span class="octicon octicon-link"></span></a>Cevaplar</h3>
+
+<p>Cevaplar XML şeklinde alınır \SanalPos\Est\SanalPosResponseEst nesnesi bu cevaplar için ortak bir sınıf olarak kullanılanabilir.
+Üç metodu var
+success: İşlem başarılı ise true aksi takdirde false döner
+errors: Alınan hata mesajı döner
+response: Alınan XML cevabı olduğu gibi döndürür.</p>
+
+<h2>
 <a name="garanti-bankas%C4%B1" class="anchor" href="#garanti-bankas%C4%B1"><span class="octicon octicon-link"></span></a>Garanti Bankası</h2>
+
+<p>Garanti sınıfı da yukarıdakine benzer şekilde kullanılmaktadır.
+Fark olarak banka ismi gerekmez ama banka tarafından verilen bilgiler girilir. Bunlar sırasıyla;</p>
+
+<ul>
+<li>merchantId,</li>
+<li>terminalId,</li>
+<li>userId,</li>
+<li>password,</li>
+<li>provisionUser</li>
+</ul><p>Bunun dışındaki diğer işlemler yukarıdakiler ile aynıdır. Fakat Garanti bankasında her işlemden önce setCard ve setOrder metodları kullanılmalıdır. Bunun sebebi Garanti bankasının bu verileri Hash verisini hesaplamakta kullanılmasıdır.</p>
 
 <div class="highlight highlight-php"><pre><span class="c1">// Sınıfı initialize et</span>
 <span class="nv">$garantiPos</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Garanti\SanalPosGaranti</span><span class="p">(</span><span class="s1">'7000679'</span><span class="p">,</span> <span class="s1">'30691297'</span><span class="p">,</span> <span class="s1">'PROVAUT'</span><span class="p">,</span> <span class="s1">'123qweASD'</span><span class="p">,</span> <span class="s1">'PROVAUT'</span><span class="p">);</span>
@@ -87,31 +178,12 @@ Aşağıdaki şekilde bir composer.json dosyası yaratıp php composer.phar inst
 </pre></div>
 
 <h2>
-<a name="est-%C4%B0%C5%9F-bankas%C4%B1-akbank-finansbank-halk-bankas%C4%B1-ve-anadolubank" class="anchor" href="#est-%C4%B0%C5%9F-bankas%C4%B1-akbank-finansbank-halk-bankas%C4%B1-ve-anadolubank"><span class="octicon octicon-link"></span></a>EST (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank)</h2>
-
-<p>EST içinde benzer bir şekilde ödeme gönderiliyor.</p>
-
-<p>Est için SanalPosEst sınıfını kullanıyoruz.
-Diğerinden farklı olarak ilk parametrede hangi banka olduğunu belirtiyoruz.
-Bunun dışında kullanımı benzer şekilde</p>
-
-<div class="highlight highlight-php"><pre><span class="nv">$est</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosEst</span><span class="p">(</span><span class="s1">'isbank'</span><span class="p">,</span> <span class="s1">'700100000'</span><span class="p">,</span> <span class="s1">'ISBANKAPI'</span><span class="p">,</span> <span class="s1">'ISBANK07'</span><span class="p">);</span>
-<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setCard</span><span class="p">(</span><span class="s1">'4508034508034509'</span><span class="p">,</span> <span class="s1">'12'</span><span class="p">,</span> <span class="s1">'16'</span><span class="p">,</span> <span class="s1">'000'</span><span class="p">);</span>
-<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setOrder</span><span class="p">(</span><span class="s1">'deneme123'</span><span class="p">,</span> <span class="s1">'test@test.com'</span><span class="p">,</span> <span class="s1">'1'</span><span class="p">);</span>
-<span class="nv">$est</span><span class="o">-&gt;</span><span class="na">setMode</span><span class="p">(</span><span class="s1">'TEST'</span><span class="p">);</span>
-
-<span class="nv">$result</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\SanalPos\Est\SanalPosResponseEst</span><span class="p">(</span><span class="nv">$est</span><span class="o">-&gt;</span><span class="na">pay</span><span class="p">());</span>
-<span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
-</pre></div>
-
-<h2>
 <a name="todo" class="anchor" href="#todo"><span class="octicon octicon-link"></span></a>TODO</h2>
 
 <p>İlk planda;</p>
 
 <ul>
 <li>Base sınıf içinde çeşitli kontrollerin eklenmesi.</li>
-<li>İptal ve refund işlemlerin eklenmesi</li>
 </ul>
       </section>
     </div>
@@ -119,7 +191,7 @@ Bunun dışında kullanımı benzer şekilde</p>
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p class="copyright">Sanalpos maintained by <a href="https://github.com/defiant">defiant</a></p>
+        <p class="copyright">Garanti Bankası ve EST destekleyen bankalar (İş Bankası, Akbank, Finansbank, Halk Bankası ve Anadolubank) için Sanal Pos sınıfları. maintained by <a href="https://github.com/defiant">defiant</a></p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
