@@ -8,10 +8,15 @@
 namespace SanalPos;
 
 class SanalPosBase {
-    protected $mode;
+    protected $mode = 'PROD';
 
     protected $card  = [];
     protected $order = [];
+
+    protected $transactionMode = 'Auth';
+    protected $currency = 949;
+
+    protected $server;
 
     public function setCard($number, $expMonth, $expYear, $cvv)
     {
@@ -30,26 +35,42 @@ class SanalPosBase {
         $this->order['extra']   = $extra;
     }
 
+    /**
+     * Gets the operation mode
+     * TEST for test mode
+     * @return mixed
+     */
     public function getMode()
     {
         return $this->mode;
     }
 
+    /**
+     * Gets the operation mode
+     * TEST for test mode everything else is production mode
+     * @param $mode
+     * @return mixed
+     */
     public function setMode($mode)
     {
         $this->mode = $mode;
         return $this->mode;
     }
 
-    public function getTransactionMode()
+    public function getCurreny()
     {
-        return $this->getTransactionMode;
+        return $this->currency;
     }
 
-    public function setTransactionMode($mode = 'sales')
-    {
-        $this->transactionMode = $mode;
-        return $this->transactionMode;
+    public function setCurrency($currency){
+        // 840 USD o 978 EURO o 826 GBP o 392 JPY
+        $availableCurrencies = [949, 840, 978, 826, 392];
+        if(!in_array($currency, $availableCurrencies))
+        {
+            throw new \Exception('Currency not found!');
+        }
+        $this->currency = $currency;
+        return $this->getCurreny;
     }
 
     public function check()
@@ -70,7 +91,8 @@ class SanalPosBase {
 
     public function checkCvv()
     {
-
+        // /^[0-9]{3,4}$/
+        return preg_match('/^[0-9]{3,4}$/', $this->card['cvv']);
     }
 
     public function checkLuhn()

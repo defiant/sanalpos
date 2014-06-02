@@ -12,11 +12,7 @@ use SanalPos\SanalPosInterface;
 use DOMDocument;
 
 class SanalPosEst extends SanalPosBase implements SanalPosInterface{
-    protected $mode = 'PROD';
-    protected $transactionMode;
-
     protected $xml;
-
     protected $clientId;
     protected $username;
     protected $password;
@@ -28,7 +24,7 @@ class SanalPosEst extends SanalPosBase implements SanalPosInterface{
         'halkbank'  => 'sanalpos.halkbank.com.tr',
         'anadolubank'=>'anadolusanalpos.est.com.tr'
     ];
-    protected $server = '';
+
     protected $testServer = 'testsanalpos.est.com.tr';
 
     public function __construct($bank, $clientId, $username, $password)
@@ -43,25 +39,20 @@ class SanalPosEst extends SanalPosBase implements SanalPosInterface{
         $this->password   = $password;
     }
 
-    public function pay()
+    public function getServer()
     {
         $this->server = $this->mode == 'TEST' ? 'https://'.$this->testServer.'/servlet/cc5ApiServer' : 'https://'.$this->server.'/servlet/cc5ApiServer';
-        $this->setXml();
-        return $this->send();
+        return $this->server;
     }
 
-    public function cancel()
+    public function pay($mode = 'Auth')
     {
-        throw new \Exception('Not implemented');
-    }
-
-    public function refund()
-    {
-        throw new \Exception('Not implemented');
-    }
-
-    public function setXml()
-    {
+        $modes = ['Auth', 'PreAuth'];
+        if(!in_array($mode, $modes))
+        {
+            throw new \Exception('Geçersiz ödeme metodu');
+        }
+        // Prepare XML CC5Request request
         $dom = new DOMDocument('1.0', 'ISO-8859-9');
         $root = $dom->createElement('CC5Request');
 
@@ -71,8 +62,8 @@ class SanalPosEst extends SanalPosBase implements SanalPosInterface{
         $x['clientId']  = $dom->createElement('ClientId', $this->clientId);
         $x['mode']      = $dom->createElement('Mode', 'P');
         $x['orderId']   = $dom->createElement('OrderId', $this->order['orderId']);
-        $x['type']      = $dom->createElement('Type', 'Auth');
-        $x['currency']  = $dom->createElement('Currency', 949);
+        $x['type']      = $dom->createElement('Type', $mode);
+        $x['currency']  = $dom->createElement('Currency', $this->getCurreny());
         $x['transId']   = $dom->createElement('TransId', '');
         $x['taksit']    = $dom->createElement('Taksit', $this->order['taksit']);
         $x['email']     = $dom->createElement('Email', $this->order['email']);
@@ -81,23 +72,89 @@ class SanalPosEst extends SanalPosBase implements SanalPosInterface{
         $x['cvv']       = $dom->createElement('Cvv2Val', $this->card['cvv']);
         $x['ip']        = $dom->createElement('IPAddress', '192.168.1.1');// $_SERVER['REMOTE_ADDR']);
         $x['total']     = $dom->createElement('Total', $this->order['total']);
-        $x['billTo']    = $dom->createElement('BillTo');
-        $x['shipTo']    = $dom->createElement('ShipTo');
+        /*$x['billTo']    = $dom->createElement('BillTo');
+        $x['shipTo']    = $dom->createElement('ShipTo');*/
 
         foreach($x as $node)
         {
             $root->appendChild($node);
         }
         $dom->appendChild($root);
-        $this->xml = $dom->saveXML();
 
-        return $this->xml;
+        $this->xml = $dom->saveXML();
+        return $this->send();
+    }
+
+    public function postAuth($orderId)
+    {
+        $dom = new DOMDocument('1.0', 'ISO-8859-9');
+        $root = $dom->createElement('CC5Request');
+
+        $x['name']      = $dom->createElement('Name', $this->username);
+        $x['$password'] = $dom->createElement('Password', $this->password);
+        $x['clientId']  = $dom->createElement('ClientId', $this->clientId);
+        $x['type']      = $dom->createElement('Type', 'PostAuth');
+        $x['orderId']   = $dom->createElement('OrderId', $orderId);
+
+        foreach($x as $node)
+        {
+            $root->appendChild($node);
+        }
+        $dom->appendChild($root);
+
+        $this->xml = $dom->saveXML();
+        return $this->send();
+    }
+
+    public function cancel($orderId)
+    {
+        $dom = new DOMDocument('1.0', 'ISO-8859-9');
+        $root = $dom->createElement('CC5Request');
+
+        $x['name']      = $dom->createElement('Name', $this->username);
+        $x['$password'] = $dom->createElement('Password', $this->password);
+        $x['clientId']  = $dom->createElement('ClientId', $this->clientId);
+        $x['type']      = $dom->createElement('Type', 'Void');
+        $x['orderId']   = $dom->createElement('OrderId', $orderId);
+
+        foreach($x as $node)
+        {
+            $root->appendChild($node);
+        }
+        $dom->appendChild($root);
+
+        $this->xml = $dom->saveXML();
+        return $this->send();
+    }
+
+    public function refund($orderId, $amount = NULL)
+    {
+        $dom = new DOMDocument('1.0', 'ISO-8859-9');
+        $root = $dom->createElement('CC5Request');
+
+        $x['name']      = $dom->createElement('Name', $this->username);
+        $x['$password'] = $dom->createElement('Password', $this->password);
+        $x['clientId']  = $dom->createElement('ClientId', $this->clientId);
+        $x['type']      = $dom->createElement('Type', 'Credit');
+        if($amount){
+            $x['amount'] = $dom->createElement('Total', $amount);
+        }
+        $x['orderId']   = $dom->createElement('OrderId', $orderId);
+
+        foreach($x as $node)
+        {
+            $root->appendChild($node);
+        }
+        $dom->appendChild($root);
+
+        $this->xml = $dom->saveXML();
+        return $this->send();
     }
 
     public function send()
     {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->server);
+        curl_setopt($curl, CURLOPT_URL, $this->getServer());
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, "data=" . $this->xml);

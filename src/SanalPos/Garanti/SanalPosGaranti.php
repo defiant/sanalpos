@@ -15,7 +15,7 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
 
     protected  $xml = '';
 
-    protected $server     = 'https://sanalposprov.garanti.com.tr/VPServlet';
+    protected $prodServer = 'https://sanalposprov.garanti.com.tr/VPServlet';
     protected $testServer = 'https://sanalposprovtest.garanti.com.tr/VPServlet';
 
     protected $merchantId;
@@ -44,7 +44,6 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
 
     public function pay()
     {
-        $this->server = $this->mode == 'TEST' ? $server = $this->testServer : $this->server;
         $this->setXml();
         return $this->send();
     }
@@ -57,6 +56,12 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
     public function refund()
     {
         throw new \Exception('Not implemented');
+    }
+
+    public function getServer()
+    {
+        $this->server = $this->mode == 'TEST' ? $server = $this->testServer : $this->server;
+        return $this->server;
     }
 
     public function send(){
