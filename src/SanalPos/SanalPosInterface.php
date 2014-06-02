@@ -19,7 +19,7 @@ interface SanalPosInterface {
 
     public function getServer();
 
-    public function pay();
+    public function pay($pre = false);
     public function postAuth($orderId);
     public function refund($orderId, $amount = NULL);
     public function cancel($orderId);

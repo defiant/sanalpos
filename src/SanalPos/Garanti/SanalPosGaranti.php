@@ -9,6 +9,7 @@ namespace SanalPos\Garanti;
 
 use SanalPos\SanalPosBase;
 use SanalPos\SanalPosInterface;
+use DOMDocument;
 
 class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
     protected $mode = 'PROD';
@@ -32,6 +33,12 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
         $this->provisionUser = $provisionUser;
     }
 
+    public function getServer()
+    {
+        $this->server = $this->mode == 'TEST' ? $server = $this->testServer : $this->server;
+        return $this->server;
+    }
+
     public function setOrder($orderId, $customerEmail, $total, $taksit = '', $extra = [])
     {
         $this->order['orderId'] = $orderId;
@@ -42,32 +49,76 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
         $this->order['total']   = $this->order['total'] * 100; // garanti 1.00 yerine 100 bekliyor
     }
 
-    public function pay()
+    public function pay($pre = false)
     {
-        $this->setXml();
+        $mode = $pre ? 'preauth' : 'sales';
+
+        // prepare Request data
+        $x['Transaction']=[
+            'Type' => $mode,
+            'Amount' => $this->order['total'],
+            'CurrencyCode' => $this->getCurreny(),
+            'CardholderPresentCode' => 0,
+            'MotoInd' => 'N',
+            'InstallmentCnt' => $this->order['taksit']
+        ];
+
+        $this->setXml($x);
         return $this->send();
     }
 
-    public function cancel()
+    public function postAuth($orderId)
     {
-        throw new \Exception('Not implemented');
+        $this->order['orderId'] = $orderId;
+
+        $x['Transaction']=[
+            'Type' => 'postauth',
+            'Amount' => $this->order['total'],
+            'CurrencyCode' => $this->getCurreny(),
+            'CardholderPresentCode' => 0,
+            'MotoInd' => 'H',
+            'InstallmentCnt' => $this->order['taksit']
+        ];
+
+        $this->setXml($x);
+        return $this->send();
     }
 
-    public function refund()
+    public function cancel($orderId)
     {
-        throw new \Exception('Not implemented');
+        $x['Transaction']=[
+            'Type' => 'void',
+            'Amount' => $this->order['total'],
+            'CurrencyCode' => $this->getCurreny(),
+            'CardholderPresentCode' => 0,
+            'MotoInd' => 'N',
+            'InstallmentCnt' => $this->order['taksit']
+        ];
+
+        $this->setXml($x);
+        return $this->send();
     }
 
-    public function getServer()
+    public function refund($orderId, $amount = NULL)
     {
-        $this->server = $this->mode == 'TEST' ? $server = $this->testServer : $this->server;
-        return $this->server;
+        $amount = $amount ? $amount*100: $this->order['total'];
+        $x['Transaction']=[
+            'Type' => 'void',
+            'Amount' => $amount,
+            'CurrencyCode' => $this->getCurreny(),
+            'CardholderPresentCode' => 0,
+            'MotoInd' => 'N',
+            'InstallmentCnt' => $this->order['taksit']
+        ];
+
+        $this->setXml($x);
+        return $this->send();
     }
 
     public function send(){
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->server);
+        curl_setopt($ch, CURLOPT_URL, $this->getServer());
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, "data=" . $this->xml);
@@ -79,45 +130,57 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
         return $response;
     }
 
-    public function setXml(){
-        $ip = $_SERVER['REMOTE_ADDR'] ? $_SERVER['REMOTE_ADDR'] : $_SERVER['SERVER_ADDR'];
+    public function setXml($xmlData){
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $root = $dom->createElement('GVPSRequest');
 
-        $xml= "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-        <GVPSRequest>
-        <Mode>{$this->mode}</Mode>
-        <Version>v0.01</Version>
-        <Terminal>
-            <ProvUserID>{$this->provisionUser}</ProvUserID>
-            <HashData>{$this->createHash()}</HashData>
-            <UserID>{$this->provisionUser}</UserID>
-            <ID>{$this->terminalId}</ID>
-            <MerchantID>{$this->merchantId}</MerchantID>
-        </Terminal>
-        <Customer>
-            <IPAddress>{$ip}</IPAddress>
-            <EmailAddress>{$this->order['email']}</EmailAddress>
-            <Description></Description>
-        </Customer>
-        <Card>
-            <Number>{$this->card['number']}</Number>
-            <ExpireDate>{$this->card['month']}{$this->card['year']}</ExpireDate>
-            <CVV2>{$this->card['cvv']}</CVV2>
-        </Card>
-        <Order>
-            <OrderID>{$this->order['orderId']}</OrderID>
-            <GroupID></GroupID>
-        </Order>
-        <Transaction>
-            <Type>sales</Type>
-            <InstallmentCnt>{$this->order['taksit']}</InstallmentCnt>
-            <Amount>{$this->order['total']}</Amount>
-            <CurrencyCode>949</CurrencyCode>
-            <CardholderPresentCode>0</CardholderPresentCode>
-            <MotoInd>N</MotoInd>
-        </Transaction>
-        </GVPSRequest>";
+        $ip = $_SERVER['REMOTE_ADDR'] ? $_SERVER['REMOTE_ADDR'] : '192.168.1.1';
+        $ip = '192.168.1.1'; // for cli testing
 
-        $this->xml = $xml;
+        $x['Mode']      = $this->mode;
+        $x['Version']   = 'v0.01';
+        $x['Terminal'] = [
+            'ProvUserID' => $this->provisionUser,
+            'HashData' => $this->createHash(),
+            'UserID' => $this->provisionUser,
+            'ID' => $this->terminalId,
+            'MerchantID' => $this->merchantId
+        ];
+        $x['Customer']  = [
+            'IPAddress' => $ip,
+            'EmailAddress' => $this->order['email'],
+            'Description'  => ''
+        ];
+        $x['Card']      = [
+            'Number' => $this->card['number'],
+            'ExpireDate' => $this->card['month'].$this->card['year'],
+            'CVV2' => $this->card['cvv']
+        ];
+        $x['Order']     = [
+            'OrderID' => $this->order['orderId'],
+            'GroupID' => ''
+        ];
+
+        foreach(array_merge($x, $xmlData) as $nodeKey => $nodeValue){
+            if(is_array($nodeValue)){
+                $node = $dom->createElement($nodeKey);
+                $root->appendChild($node);
+                foreach($nodeValue as $childKey => $childValue){
+                    $textNode = $dom->createTextNode(strval($childValue));
+                    $child = $dom->createElement($childKey);
+                    $child->appendChild($textNode);
+                    $node->appendChild($child);
+                }
+            }else{
+                $textNode = $dom->createTextNode(strval($nodeValue));
+                $node = $dom->createElement($nodeKey);
+                $node->appendChild($textNode);
+                $root->appendChild($node);
+            }
+        }
+        $dom->appendChild($root);
+
+        $this->xml = $dom->saveXML();
         return $this->xml;
     }
 

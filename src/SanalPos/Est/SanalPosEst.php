@@ -45,13 +45,9 @@ class SanalPosEst extends SanalPosBase implements SanalPosInterface{
         return $this->server;
     }
 
-    public function pay($mode = 'Auth')
+    public function pay($pre = false)
     {
-        $modes = ['Auth', 'PreAuth'];
-        if(!in_array($mode, $modes))
-        {
-            throw new \Exception('Geçersiz ödeme metodu');
-        }
+        $mode = $pre ? 'PreAuth' : 'Auth';
         // Prepare XML CC5Request request
         $dom = new DOMDocument('1.0', 'ISO-8859-9');
         $root = $dom->createElement('CC5Request');

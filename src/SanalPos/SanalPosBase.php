@@ -63,7 +63,7 @@ class SanalPosBase {
     }
 
     public function setCurrency($currency){
-        // 840 USD o 978 EURO o 826 GBP o 392 JPY
+        // 949 TL, 840 USD, 978 EURO, 826 GBP, 392 JPY
         $availableCurrencies = [949, 840, 978, 826, 392];
         if(!in_array($currency, $availableCurrencies))
         {
