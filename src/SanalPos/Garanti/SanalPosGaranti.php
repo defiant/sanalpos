@@ -35,7 +35,7 @@ class SanalPosGaranti extends SanalPosBase implements SanalPosInterface{
 
     public function getServer()
     {
-        $this->server = $this->mode == 'TEST' ? $server = $this->testServer : $this->server;
+        $this->server = $this->mode == 'TEST' ? $server = $this->testServer : $this->prodServer;
         return $this->server;
     }
 
